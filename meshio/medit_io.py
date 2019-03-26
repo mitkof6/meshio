@@ -69,6 +69,7 @@ def read_buffer(file):
         "Tetrahedra": ("tetra", 4),
         "Hexahedra": ("hexahedron", 8),  # Frey
         "Hexaedra": ("hexahedron", 8),  # Dobrzynski
+        "Corners": ("corner", 0), # Filip
     }
 
     reader = _ItemReader(file)
@@ -95,6 +96,7 @@ def read_buffer(file):
             for k in range(num_verts):
                 points[k] = numpy.array(reader.next_items(dim), dtype=dtype)
                 point_data["medit:ref"][k] = reader.next_item()
+
         elif keyword in meshio_from_medit:
             meshio_name, num = meshio_from_medit[keyword]
             # The first value is the number of elements
@@ -103,8 +105,12 @@ def read_buffer(file):
             cells1 = numpy.empty((num_cells, num), dtype=int)
             for k in range(num_cells):
                 data = numpy.array(reader.next_items(num + 1), dtype=int)
-                cells1[k] = data[:-1]
-                cell_data[meshio_name]["medit:ref"][k] = data[-1]
+                if num==0:
+                    cells1[k] = data[0]
+                    cell_data[meshio_name]["medit:ref"][k] = data[0]
+                else:
+                    cells1[k] = data[:-1]
+                    cell_data[meshio_name]["medit:ref"][k] = data[-1]
 
             # adapt 0-base
             cells[meshio_name] = cells1 - 1
